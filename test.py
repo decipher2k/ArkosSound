@@ -10,22 +10,22 @@ warnings.filterwarnings("ignore")
 
 # load model from single file
 model = load_model('lstm_model.h5')
-print("RDY")
+print(len(sys.argv))
 
 X=[90,92,88,90,93,88,81,-1000]
 
 # total arguments
 n = len(sys.argv)
 if(n==8):
-	X[0]=sys.argv[1]
-	X[1]=sys.argv[2]
-	X[2]=sys.argv[3]
-	X[3]=sys.argv[4]
-	X[4]=sys.argv[5]
-	X[5]=sys.argv[6]
-	X[6]=sys.argv[7]
+	X[0]=int(sys.argv[1])
+	X[1]=int(sys.argv[2])
+	X[2]=int(sys.argv[3])
+	X[3]=int(sys.argv[4])
+	X[4]=int(sys.argv[5])
+	X[5]=int(sys.argv[6])
+	X[6]=int(sys.argv[7])
 
-z=input()
+print("RDY")
 
 while 1==1:
     # make predictions
