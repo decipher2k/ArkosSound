@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Net.WebRequestMethods;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace ArkosSound
@@ -120,7 +121,7 @@ namespace ArkosSound
         Splash splash = new Splash();
         public void initPython(object param=null)
         {
-
+         //   initPip();
             loading = "";
             String pyFile = "test.py";
             ProcessStartInfo psi = new ProcessStartInfo()
@@ -128,7 +129,7 @@ namespace ArkosSound
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 Arguments = pyFile,
-                FileName = "python.exe",
+                FileName = ".\\Python\\python.exe",
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
             };
@@ -165,13 +166,102 @@ namespace ArkosSound
             sr = python.StandardOutput;
             si = python.StandardInput;
 
-            while (!loading.Contains("RDY"))
+            while (!loading.Contains("RDY") &&!sr.EndOfStream)
             {
                 loading += sr.ReadLine();
                 System.Threading.Thread.Sleep(100);
+                if(loading.Contains("DLL"))
+                {
+                    cancel = true;
+                    Form1.self.Invoke(new Action(() => { Form1.self.WindowState = FormWindowState.Minimized; }));
+                    splash.Invoke(new Action(() => { splash.Close(); }));
+                    Form1.self.Invoke(new Action(() => { MessageBox.Show("ArkosSound requires AVX to run."); Form1.self.Invoke(new Action(() => { })); }));
+                    Process.GetCurrentProcess().Kill();
+                    return;
+                }
+            }
+            if(python.HasExited)
+            {
+                cancel = true;
+                Form1.self.Invoke(new Action(() => { Form1.self.WindowState = FormWindowState.Minimized; }));
+                splash.Invoke(new Action(() => { splash.Close(); }));
+                Form1.self.Invoke(new Action(() => { MessageBox.Show("ArkosSound requires AVX to run."); Form1.self.Invoke(new Action(() => { })); }));
+                Process.GetCurrentProcess().Kill();
+                return;
             }
       
             splash.Invoke(new Action(() => splash.Close()));
+        }
+
+        private void initPip()
+        {
+            Process pip = new Process();
+            ProcessStartInfo psi = new ProcessStartInfo()
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                Arguments = "--version",
+                FileName = ".\\Python\\python.exe"
+            };
+
+            pip.StartInfo = psi;
+            String ret = "";
+            try
+            {
+
+                pip.Start();
+                sr = pip.StandardOutput;
+                if (pip.Id<=0)
+                {
+                    cancel = true;
+                    Form1.self.Invoke(new Action(() => { Form1.self.WindowState = FormWindowState.Minimized; }));
+                    splash.Invoke(new Action(() => { splash.Close(); }));
+                    Form1.self.Invoke(new Action(() => { MessageBox.Show("ArkosSound requires Python3 to run."); Form1.self.Invoke(new Action(() => { })); }));
+                    Process.GetCurrentProcess().Kill();
+                    return;
+                }    
+                while(!ret.Contains("3") && !sr.EndOfStream)
+                {
+                    ret=sr.ReadLine();
+                }
+                if(!ret.Contains("3"))
+                {
+                    cancel = true;
+                    Form1.self.Invoke(new Action(() => { Form1.self.WindowState = FormWindowState.Minimized; }));
+                    splash.Invoke(new Action(() => { splash.Close(); }));
+                    Form1.self.Invoke(new Action(() => { MessageBox.Show("ArkosSound requires Python3 to run."); Form1.self.Invoke(new Action(() => { })); }));
+                    Process.GetCurrentProcess().Kill();
+                    return;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                cancel = true;
+                Form1.self.Invoke(new Action(() => { Form1.self.WindowState = FormWindowState.Minimized; }));
+                splash.Invoke(new Action(() => { splash.Close(); }));
+                Form1.self.Invoke(new Action(() => { MessageBox.Show("ArkosSound requires Python3 to run."); Form1.self.Invoke(new Action(() => { })); }));
+                Process.GetCurrentProcess().Kill();
+                return;
+            }
+
+            pip = new Process();
+            psi = new ProcessStartInfo()
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                Arguments = "-m pip install keras numpy",
+                FileName = ".\\Python\\python.exe"
+            };
+
+            pip.StartInfo = psi;
+            try
+            {
+                pip.Start();
+                pip.WaitForExit();
+               
+            }catch (Exception ex) { }
         }
 
         private void button1_Click(object sender, EventArgs e)
